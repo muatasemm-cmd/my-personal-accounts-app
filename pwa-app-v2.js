@@ -311,6 +311,12 @@
             ? "كل بيانات " + state.profile.deviceName + " محفوظة داخل هذا الجهاز فقط."
             : "كل شيء محفوظ محليًا داخل هذا الجهاز. لا يوجد مزامنة ولا يحتاج إنترنت.";
         refs.standaloneBadge.textContent = isStandalone() ? "مثبّت على الشاشة" : "يفضل التثبيت من Safari";
+        const creditLine = document.getElementById("appCredit");
+        if (creditLine) {
+            creditLine.textContent = state.profile.deviceName
+                ? "نسخة خاصة بمعتصم مكوسة - " + state.profile.deviceName
+                : "نسخة خاصة بمعتصم مكوسة";
+        }
     }
 
     function hydrateProfileForms() {
