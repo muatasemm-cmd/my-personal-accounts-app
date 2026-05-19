@@ -1,4 +1,8 @@
-﻿:root {
+﻿[hidden] {
+    display: none !important;
+}
+
+:root {
     --app-bg: linear-gradient(180deg, #eef4ff 0%, #f8fbff 18%, #f4f7fb 100%);
     --app-card: rgba(255, 255, 255, 0.96);
     --app-line: rgba(203, 213, 225, 0.9);
@@ -501,4 +505,3 @@
         width: 100%;
     }
 }
-
