@@ -1,13 +1,13 @@
-﻿const CACHE_NAME = "personalaccounts-static-pwa-v1";
+const CACHE_NAME = "personalaccounts-static-pwa-v2";
 const CORE_ASSETS = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
   "./favicon.ico",
-  "./css/site.css",
-  "./css/pwa.css",
-  "./js/site.js",
-  "./js/pwa-app.js"
+  "./site.css",
+  "./pwa.css",
+  "./site.js",
+  "./pwa-app.js"
 ];
 
 self.addEventListener("install", (event) => {

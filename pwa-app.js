@@ -59,6 +59,8 @@
         commitmentsList: document.getElementById("commitmentsList")
     };
 
+    forceResetFromQueryIfNeeded();
+
     let state = loadState();
     let toastTimer = null;
     let isUnlocked = !state.profile.passcode;
@@ -504,6 +506,21 @@
         } catch (error) {
             return structuredClone(DEFAULT_STATE);
         }
+    }
+
+    function forceResetFromQueryIfNeeded() {
+        const params = new URLSearchParams(window.location.search);
+        const wantsReset =
+            params.get("reset") === "1" ||
+            params.get("clear") === "1" ||
+            params.get("fresh") === "1";
+
+        if (!wantsReset) {
+            return;
+        }
+
+        localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(INSTALL_DISMISSED_KEY);
     }
 
     function normalizeState(raw) {
