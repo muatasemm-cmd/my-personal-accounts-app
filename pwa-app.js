@@ -292,9 +292,9 @@
     }
 
     function render() {
-        refs.lockScreen.hidden = isUnlocked;
-        refs.deviceApp.hidden = !isUnlocked;
-        refs.firstRunCard.hidden = !!state.profile.deviceName || !isUnlocked;
+        setElementVisible(refs.lockScreen, !isUnlocked);
+        setElementVisible(refs.deviceApp, isUnlocked);
+        setElementVisible(refs.firstRunCard, isUnlocked && !state.profile.deviceName);
 
         if (!isUnlocked) {
             refs.unlockPasscode.focus();
@@ -639,6 +639,15 @@
         if (element) {
             element.value = value;
         }
+    }
+
+    function setElementVisible(element, visible) {
+        if (!element) {
+            return;
+        }
+
+        element.hidden = !visible;
+        element.style.display = visible ? "" : "none";
     }
 
     function escapeHtml(value) {
