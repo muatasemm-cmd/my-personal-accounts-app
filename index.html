@@ -1,0 +1,404 @@
+﻿<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>تطبيق حساباتي - حساباتي</title>
+    <meta name="theme-color" content="#1d4ed8" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="حساباتي" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="./favicon.ico" />
+    <link rel="icon" href="./favicon.ico" />
+    <link rel="stylesheet" href="./css/site.css" />
+    <link rel="stylesheet" href="./css/pwa.css" />
+</head>
+<body class="pwa-body">
+<div class="pwa-app-shell" id="pwaAppShell">
+    <div class="install-sheet" id="installSheet" hidden>
+        <div>
+            <strong>ثبت التطبيق على الآيفون</strong>
+            <p class="mb-0">من Safari اضغط مشاركة ثم Add to Home Screen. بعدها سيعمل مثل أي تطبيق على الجهاز.</p>
+        </div>
+        <button type="button" class="install-sheet-close" id="dismissInstallSheet">لاحقًا</button>
+    </div>
+
+    <section class="device-lock-screen" id="lockScreen" hidden>
+        <div class="device-lock-card">
+            <span class="device-lock-badge">الجهاز مقفل</span>
+            <h1>حساباتي</h1>
+            <p>أدخل رمز هذا الجهاز للمتابعة.</p>
+            <form id="unlockForm" class="device-lock-form">
+                <input id="unlockPasscode" class="app-input app-input-center" type="password" inputmode="numeric" autocomplete="one-time-code" maxlength="12" placeholder="رمز المرور" />
+                <button class="app-button app-button-primary" type="submit">فتح التطبيق</button>
+                <p class="form-hint" id="unlockError"></p>
+            </form>
+            <button type="button" class="app-button app-button-outline mt-3" id="resetLockedDeviceButton">نسيت الرمز؟ امسح بيانات هذا الجهاز</button>
+        </div>
+    </section>
+
+    <main class="device-app" id="deviceApp" hidden>
+        <header class="hero-card">
+            <div class="hero-topline">
+                <span class="hero-badge" id="standaloneBadge">وضع التطبيق</span>
+                <button type="button" class="app-button app-button-ghost app-button-small" id="lockDeviceButton">قفل الجهاز</button>
+            </div>
+            <h1 id="welcomeTitle">حساباتي على هذا الجهاز</h1>
+            <p id="welcomeSubtitle">كل شيء محفوظ محليًا داخل هذا الآيفون. لا يوجد مزامنة ولا يحتاج إنترنت.</p>
+
+            <div class="hero-summary-grid">
+                <article class="hero-summary-card">
+                    <span>رصيد هذا الشهر</span>
+                    <strong id="monthBalanceValue">0.00</strong>
+                </article>
+                <article class="hero-summary-card">
+                    <span>مصروف اليوم</span>
+                    <strong id="todayExpenseValue">0.00</strong>
+                </article>
+                <article class="hero-summary-card">
+                    <span>التزامات قادمة</span>
+                    <strong id="dueCommitmentsValue">0</strong>
+                </article>
+            </div>
+        </header>
+
+        <section class="setup-card" id="firstRunCard" hidden>
+            <div class="section-heading">
+                <div>
+                    <h2>تهيئة هذا الجهاز</h2>
+                    <p>مرة واحدة فقط. الاسم والميزانية هنا تخص هذا الآيفون وحده.</p>
+                </div>
+            </div>
+
+            <form id="profileForm" class="form-grid">
+                <label class="form-field">
+                    <span>اسم هذا الجهاز أو الحساب</span>
+                    <input id="profileName" class="app-input" type="text" maxlength="50" placeholder="مثال: آيفون 16 - حسابي الشخصي" required />
+                </label>
+
+                <label class="form-field">
+                    <span>العملة</span>
+                    <input id="profileCurrency" class="app-input" type="text" maxlength="10" value="₪" placeholder="₪ أو $" />
+                </label>
+
+                <label class="form-field">
+                    <span>سقف مصروف الشهر</span>
+                    <input id="profileBudget" class="app-input" type="text" inputmode="decimal" placeholder="0.00" />
+                </label>
+
+                <label class="form-field">
+                    <span>هدف التوفير</span>
+                    <input id="profileSavingGoal" class="app-input" type="text" inputmode="decimal" placeholder="0.00" />
+                </label>
+
+                <label class="form-field form-field-full">
+                    <span>رمز قفل اختياري لهذا الجهاز</span>
+                    <input id="profilePasscode" class="app-input" type="password" inputmode="numeric" maxlength="12" placeholder="مثال: 1234" />
+                </label>
+
+                <button class="app-button app-button-primary form-field-full" type="submit">حفظ وتجهيز التطبيق</button>
+            </form>
+        </section>
+
+        <nav class="app-sections-nav">
+            <button class="section-tab is-active" type="button" data-section="overview">الرئيسية</button>
+            <button class="section-tab" type="button" data-section="money">دخل ومصاريف</button>
+            <button class="section-tab" type="button" data-section="debts">ديون</button>
+            <button class="section-tab" type="button" data-section="backup">النسخ</button>
+            <button class="section-tab" type="button" data-section="settings">الإعدادات</button>
+        </nav>
+
+        <section class="app-section is-active" data-section-panel="overview">
+            <div class="section-heading">
+                <div>
+                    <h2>ملخص سريع</h2>
+                    <p>أهم المؤشرات اليومية والشهرية لهذا الجهاز.</p>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <article class="stat-card">
+                    <span>دخل الشهر</span>
+                    <strong id="monthIncomeValue">0.00</strong>
+                    <small id="monthIncomeHint">0 عملية</small>
+                </article>
+
+                <article class="stat-card danger">
+                    <span>مصروف الشهر</span>
+                    <strong id="monthExpenseValue">0.00</strong>
+                    <small id="monthExpenseHint">0 عملية</small>
+                </article>
+
+                <article class="stat-card success">
+                    <span>صافي الديون</span>
+                    <strong id="netDebtValue">0.00</strong>
+                    <small id="netDebtHint">إلك ناقص عليك</small>
+                </article>
+
+                <article class="stat-card warning">
+                    <span>هدف التوفير</span>
+                    <strong id="savingProgressValue">0%</strong>
+                    <small id="savingProgressHint">لا يوجد هدف محدد</small>
+                </article>
+            </div>
+
+            <div class="dual-card-grid">
+                <article class="content-card">
+                    <div class="section-heading compact">
+                        <div>
+                            <h3>آخر الحركات</h3>
+                            <p>دخل ومصاريف آخر فترة</p>
+                        </div>
+                    </div>
+                    <div class="list-stack" id="recentActivityList"></div>
+                </article>
+
+                <article class="content-card">
+                    <div class="section-heading compact">
+                        <div>
+                            <h3>الالتزامات القادمة</h3>
+                            <p>كل ما لم يتم دفعه بعد</p>
+                        </div>
+                    </div>
+                    <div class="list-stack" id="upcomingCommitmentsList"></div>
+                </article>
+            </div>
+        </section>
+
+        <section class="app-section" data-section-panel="money">
+            <div class="dual-card-grid">
+                <article class="content-card">
+                    <div class="section-heading compact">
+                        <div>
+                            <h2>إضافة دخل</h2>
+                            <p>راتب، حوالة، بيع أو أي دخل آخر</p>
+                        </div>
+                    </div>
+
+                    <form id="incomeForm" class="form-grid">
+                        <label class="form-field">
+                            <span>عنوان الدخل</span>
+                            <input id="incomeTitle" class="app-input" type="text" maxlength="60" placeholder="راتب" required />
+                        </label>
+                        <label class="form-field">
+                            <span>المبلغ</span>
+                            <input id="incomeAmount" class="app-input" type="text" inputmode="decimal" placeholder="0.00" required />
+                        </label>
+                        <label class="form-field">
+                            <span>التاريخ</span>
+                            <input id="incomeDate" class="app-input" type="date" required />
+                        </label>
+                        <label class="form-field">
+                            <span>التصنيف</span>
+                            <input id="incomeCategory" class="app-input" type="text" maxlength="40" placeholder="راتب أو دخل إضافي" />
+                        </label>
+                        <button class="app-button app-button-primary form-field-full" type="submit">حفظ الدخل</button>
+                    </form>
+                </article>
+
+                <article class="content-card">
+                    <div class="section-heading compact">
+                        <div>
+                            <h2>إضافة مصروف</h2>
+                            <p>سجل أي مصروف بسرعة من هذا الجهاز</p>
+                        </div>
+                    </div>
+
+                    <form id="expenseForm" class="form-grid">
+                        <label class="form-field">
+                            <span>اسم المصروف</span>
+                            <input id="expenseTitle" class="app-input" type="text" maxlength="60" placeholder="خضار، بنزين..." required />
+                        </label>
+                        <label class="form-field">
+                            <span>المبلغ</span>
+                            <input id="expenseAmount" class="app-input" type="text" inputmode="decimal" placeholder="0.00" required />
+                        </label>
+                        <label class="form-field">
+                            <span>التاريخ</span>
+                            <input id="expenseDate" class="app-input" type="date" required />
+                        </label>
+                        <label class="form-field">
+                            <span>التصنيف</span>
+                            <input id="expenseCategory" class="app-input" type="text" maxlength="40" placeholder="أكل، مواصلات..." />
+                        </label>
+                        <label class="form-field form-field-full">
+                            <span>ملاحظة</span>
+                            <input id="expenseNote" class="app-input" type="text" maxlength="120" placeholder="اختياري" />
+                        </label>
+                        <button class="app-button app-button-danger form-field-full" type="submit">حفظ المصروف</button>
+                    </form>
+                </article>
+            </div>
+
+            <article class="content-card mt-3">
+                <div class="section-heading compact">
+                    <div>
+                        <h2>سجل الدخل والمصاريف</h2>
+                        <p>كل شيء محفوظ محليًا على نفس الجهاز</p>
+                    </div>
+                </div>
+                <div class="list-stack" id="moneyEntriesList"></div>
+            </article>
+        </section>
+
+        <section class="app-section" data-section-panel="debts">
+            <div class="dual-card-grid">
+                <article class="content-card">
+                    <div class="section-heading compact">
+                        <div>
+                            <h2>إضافة دين أو حق</h2>
+                            <p>لكل شخص حسابه على هذا الجهاز فقط</p>
+                        </div>
+                    </div>
+
+                    <form id="debtForm" class="form-grid">
+                        <label class="form-field">
+                            <span>اسم الشخص</span>
+                            <input id="debtPerson" class="app-input" type="text" maxlength="60" placeholder="اسم الشخص" required />
+                        </label>
+                        <label class="form-field">
+                            <span>المبلغ</span>
+                            <input id="debtAmount" class="app-input" type="text" inputmode="decimal" placeholder="0.00" required />
+                        </label>
+                        <label class="form-field">
+                            <span>النوع</span>
+                            <select id="debtType" class="app-input app-select" required>
+                                <option value="for-me">إلي على الشخص</option>
+                                <option value="on-me">عليّ للشخص</option>
+                            </select>
+                        </label>
+                        <label class="form-field">
+                            <span>التاريخ</span>
+                            <input id="debtDate" class="app-input" type="date" required />
+                        </label>
+                        <label class="form-field form-field-full">
+                            <span>ملاحظة</span>
+                            <input id="debtNote" class="app-input" type="text" maxlength="120" placeholder="اختياري" />
+                        </label>
+                        <button class="app-button app-button-primary form-field-full" type="submit">حفظ الدين</button>
+                    </form>
+                </article>
+
+                <article class="content-card">
+                    <div class="section-heading compact">
+                        <div>
+                            <h2>إضافة التزام</h2>
+                            <p>فواتير، أقساط، أو موعد دفع قريب</p>
+                        </div>
+                    </div>
+
+                    <form id="commitmentForm" class="form-grid">
+                        <label class="form-field">
+                            <span>اسم الالتزام</span>
+                            <input id="commitmentName" class="app-input" type="text" maxlength="60" placeholder="قسط سيارة" required />
+                        </label>
+                        <label class="form-field">
+                            <span>المبلغ</span>
+                            <input id="commitmentAmount" class="app-input" type="text" inputmode="decimal" placeholder="0.00" required />
+                        </label>
+                        <label class="form-field form-field-full">
+                            <span>موعد الاستحقاق</span>
+                            <input id="commitmentDate" class="app-input" type="date" required />
+                        </label>
+                        <button class="app-button app-button-warning form-field-full" type="submit">حفظ الالتزام</button>
+                    </form>
+                </article>
+            </div>
+
+            <div class="dual-card-grid mt-3">
+                <article class="content-card">
+                    <div class="section-heading compact">
+                        <div>
+                            <h2>الديون الحالية</h2>
+                            <p>رصيد كل شخص على هذا الجهاز</p>
+                        </div>
+                    </div>
+                    <div class="list-stack" id="debtsList"></div>
+                </article>
+
+                <article class="content-card">
+                    <div class="section-heading compact">
+                        <div>
+                            <h2>الالتزامات</h2>
+                            <p>علّم المدفوع واحذف ما لا تحتاجه</p>
+                        </div>
+                    </div>
+                    <div class="list-stack" id="commitmentsList"></div>
+                </article>
+            </div>
+        </section>
+
+        <section class="app-section" data-section-panel="backup">
+            <article class="content-card">
+                <div class="section-heading">
+                    <div>
+                        <h2>نسخة هذا الجهاز</h2>
+                        <p>مهم جدًا على الآيفون. كل جهاز مستقل، فاحفظ نسخة له لوحده.</p>
+                    </div>
+                </div>
+
+                <div class="backup-actions">
+                    <button type="button" class="app-button app-button-primary" id="exportBackupButton">تصدير نسخة JSON</button>
+                    <label class="app-button app-button-secondary file-button">
+                        استيراد نسخة
+                        <input id="importBackupInput" type="file" accept=".json,application/json" hidden />
+                    </label>
+                    <button type="button" class="app-button app-button-outline" id="resetDeviceButton">تصفير بيانات هذا الجهاز</button>
+                </div>
+
+                <div class="backup-status" id="backupStatus">
+                    لا توجد عملية حالية.
+                </div>
+            </article>
+        </section>
+
+        <section class="app-section" data-section-panel="settings">
+            <article class="content-card">
+                <div class="section-heading">
+                    <div>
+                        <h2>إعدادات هذا الجهاز</h2>
+                        <p>هذه الإعدادات محلية على نفس الآيفون فقط.</p>
+                    </div>
+                </div>
+
+                <form id="settingsForm" class="form-grid">
+                    <label class="form-field">
+                        <span>اسم الجهاز أو الحساب</span>
+                        <input id="settingsName" class="app-input" type="text" maxlength="50" placeholder="اسم واضح لهذا الجهاز" required />
+                    </label>
+
+                    <label class="form-field">
+                        <span>العملة</span>
+                        <input id="settingsCurrency" class="app-input" type="text" maxlength="10" placeholder="₪" />
+                    </label>
+
+                    <label class="form-field">
+                        <span>سقف مصروف الشهر</span>
+                        <input id="settingsBudget" class="app-input" type="text" inputmode="decimal" placeholder="0.00" />
+                    </label>
+
+                    <label class="form-field">
+                        <span>هدف التوفير</span>
+                        <input id="settingsSavingGoal" class="app-input" type="text" inputmode="decimal" placeholder="0.00" />
+                    </label>
+
+                    <label class="form-field form-field-full">
+                        <span>رمز قفل الجهاز</span>
+                        <input id="settingsPasscode" class="app-input" type="password" inputmode="numeric" maxlength="12" placeholder="اتركه فارغًا لإلغاء القفل" />
+                    </label>
+
+                    <button class="app-button app-button-primary form-field-full" type="submit">حفظ الإعدادات</button>
+                </form>
+            </article>
+        </section>
+
+        <div class="toast-message" id="toastMessage" hidden></div>
+    </main>
+</div>
+
+<script src="./js/site.js"></script>
+<script src="./js/pwa-app.js"></script>
+</body>
+</html>
